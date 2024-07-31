@@ -1,40 +1,54 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using NUnit.Framework;
+using System;
 using System.Collections.ObjectModel;
+using System.IO;
 
 namespace WorkingWithWebTable
 {
     public class WebTablesTests
     {
         WebDriver driver;
-        
+
         [SetUp]
         public void Setup()
         {
-            driver = new ChromeDriver();
-            driver.Navigate().GoToUrl("http://practice.bpbonline.com/ ");
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            var options = new ChromeOptions();
+            options.AddArguments("--disable-search-engine-choice-screen");
+            options.AddArgument("--no-first-run");
+            options.AddArgument("--no-default-browser-check");
+            options.AddArgument("--disable-popup-blocking");
+            options.AddArgument("--disable-extensions");
+            options.AddArgument("--disable-infobars");
+            options.AddArgument("--disable-notifications");
+            options.AddArgument("--start-maximized");
+            options.AddArgument("--disable-default-apps");
+
+            driver = new ChromeDriver(options);
+            driver.Navigate().GoToUrl("http://practice.bpbonline.com/");
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10); 
+
+            
         }
 
         [TearDown]
-         public void TearDown()
+        public void TearDown()
         {
             driver.Quit();
             driver.Dispose();
         }
 
-
-
-
         [Test]
         public void WorkingWithTableElements()
         {
-            //locate the table
+            // Locate the table
             IWebElement productstable = driver.FindElement(By.XPath("//div[@class='contentText']//table"));
 
-            IReadOnlyCollection<IWebElement> tableRows = (IReadOnlyCollection<IWebElement>)productstable.FindElement(By.XPath("//tbody//tr"));
+            // Use FindElements to get a collection of rows
+            IReadOnlyCollection<IWebElement> tableRows = productstable.FindElements(By.XPath("//tbody//tr"));
 
-            string path = System.IO.Directory.GetCurrentDirectory() + "/productinformation.scv";
+            string path = System.IO.Directory.GetCurrentDirectory() + "/productinformation.csv";
 
             if (File.Exists(path))
             {
@@ -45,17 +59,14 @@ namespace WorkingWithWebTable
             {
                 ReadOnlyCollection<IWebElement> tableData = row.FindElements(By.XPath(".//td"));
 
-                foreach (var tData in tableData)
+                if (tableData.Count > 1)  // Ensure there are at least 2 cells to avoid IndexOutOfRangeException
                 {
-                    string data = tData.Text;
-                    string[] productInfo = data.Split("\n");
-
-                    File.AppendAllText(path, productInfo[0].Trim() + ", " + productInfo[1].Trim() + "\n");
+                    string data = tableData[0].Text + ", " + tableData[1].Text;
+                    File.AppendAllText(path, data + "\n");
 
                     Assert.IsTrue(File.Exists(path));
                     Assert.IsTrue(new FileInfo(path).Length > 0);
                 }
-
             }
         }
     }

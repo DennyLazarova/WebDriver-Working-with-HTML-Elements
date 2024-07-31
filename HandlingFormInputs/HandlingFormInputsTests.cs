@@ -1,6 +1,8 @@
-using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
+using NUnit.Framework;
+using System;
 
 namespace HandlingFormInputs
 {
@@ -11,9 +13,19 @@ namespace HandlingFormInputs
         [SetUp]
         public void Setup()
         {
-            driver = new ChromeDriver();
-            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
+            var options = new ChromeOptions();
+            options.AddArguments("--disable-search-engine-choice-screen");
+            options.AddArgument("--no-first-run");
+            options.AddArgument("--no-default-browser-check");
+            options.AddArgument("--disable-popup-blocking");
+            options.AddArgument("--disable-extensions");
+            options.AddArgument("--disable-infobars");
+            options.AddArgument("--disable-notifications");
+            options.AddArgument("--start-maximized");
+            options.AddArgument("--disable-default-apps");
 
+            driver = new ChromeDriver(options);
+            driver.Manage().Timeouts().ImplicitWait = TimeSpan.FromSeconds(10);
             driver.Navigate().GoToUrl("http://practice.bpbonline.com/");
         }
 
@@ -34,9 +46,8 @@ namespace HandlingFormInputs
 
             // Generate a unique email address
             Random rnd = new Random();
-            // Generate a random number between 1000 and 9999
             int num = rnd.Next(1000, 9999);
-            String email = "fiona.apple" + num.ToString() + "@example.com";
+            string email = $"fiona.apple{num}@example.com";
 
             driver.FindElement(By.Name("email_address")).SendKeys(email);
             driver.FindElement(By.Name("company")).SendKeys("Example Inc.");
@@ -47,17 +58,16 @@ namespace HandlingFormInputs
             driver.FindElement(By.Name("state")).SendKeys("London");
 
             // Select country from dropdown
-            new SelectElement(driver.FindElement(By.Name("country"))).SelectByText("United Kingdom");
+            SelectElement countryDropdown = new SelectElement(driver.FindElement(By.Name("country")));
+            countryDropdown.SelectByText("United Kingdom");
 
             driver.FindElement(By.Name("telephone")).SendKeys("2432424112");
             driver.FindElement(By.Name("newsletter")).Click();
-
             driver.FindElement(By.Name("password")).SendKeys("fiona_123456");
             driver.FindElement(By.Name("confirmation")).SendKeys("fiona_123456");
 
-
             // Submit the form
-            driver.FindElement(By.Id("tdb4")).Submit();
+            driver.FindElement(By.Id("tdb4")).Click();
 
             // Assert account creation success
             Assert.IsTrue(driver.PageSource.Contains("Your Account Has Been Created!"), "Account creation failed.");
@@ -69,7 +79,6 @@ namespace HandlingFormInputs
             driver.FindElement(By.LinkText("Continue")).Click();
 
             Console.WriteLine("User Account Created with email: " + email);
-
         }
 
         [TearDown]
@@ -78,5 +87,4 @@ namespace HandlingFormInputs
             driver.Quit();
         }
     }
-
 }
