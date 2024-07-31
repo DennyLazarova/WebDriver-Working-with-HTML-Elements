@@ -77,7 +77,10 @@ namespace CalculatorProject
         [Test]
         [TestCase ("5", "10", "+ (sum)", "Result: 15")]
         [TestCase ("5", "5", "+ (sum)", "Result: 10")]
-        [TestCase ("5", "15", "+ (sum)", "Result: 20")]
+        [TestCase ("3.5", "1.2", "- (subtract)", "Result: 2.3")]
+        [TestCase ("2e2", "1.5", "* (multiply)", "Result: 300")]
+        [TestCase ("5", "0", "/ (divide)", "Result: Infinity")]
+        [TestCase ("invalid", "10", "+ (sum)", "Result: invalid input")]
 
         public void Test1(string firstNumber, string secondNumber, string operation, string expected)
         {
